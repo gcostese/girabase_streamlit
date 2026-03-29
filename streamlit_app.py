@@ -14,7 +14,7 @@ st.title("🚦 Simulateur Giratoire avec Visualisation Dynamique")
 st.sidebar.image("BlocMarque_RF-Cerema_horizontal.jpg", 
                  use_container_width=True)
 st.sidebar.header("📐 Géométrie du Carrefour")
-nb_branches = st.sidebar.slider("Nombre de branches", 3, 6, 4)
+nb_branches = st.sidebar.slider("Nombre de branches", 2, 6, 4)
 diametre = st.sidebar.number_input(
     "Diamètre extérieur (m)", 20, 100, 40, 
     help="Distance entre les bords extérieurs de la chaussée. Un grand diamètre facilite l'insertion."
@@ -120,7 +120,8 @@ if st.button("Lancer l'Analyse", type="primary"):
         structure_resultats.append({
             'id': i+1,
             'Taux de charge': taux_charge,
-            'Couleur': couleur
+            'Couleur': couleur,
+            'Largeur': branches_config[i]["largeur"]
         })
         
         data_recap_table.append({
