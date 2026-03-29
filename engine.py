@@ -40,28 +40,42 @@ def calculer_capacite_girabase(Q_genant, largeur_entree, nb_voies_entree, diamet
 def calculer_flux_circulant(matrice_od):
     """
     Calcule le flux circulant (Qg) devant chaque entrée i.
-    Qg(i) = Somme des flux qui passent devant l'entrée i sans y entrer ni en sortir.
+    Logique : Un flux de l'origine j vers la destination k gêne l'entrée i 
+    si l'entrée i se trouve physiquement entre j et k sur l'anneau.
     """
     n = len(matrice_od)
     q_genant = [0] * n
     
     for i in range(n):
-        flux = 0
-        # Pour chaque flux de l'origine j vers la destination k
+        flux_cumule = 0
+        # On parcourt toutes les combinaisons Origine (j) -> Destination (k)
         for j in range(n):
             for k in range(n):
-                if j == k: continue
+                if j == k:
+                    continue
                 
-                # Un flux j->k est gênant pour l'entrée i si i est situé 
-                # entre j et k sur l'anneau (sens horaire inversé / sens giratoire)
-                # Logique simplifiée : j < i < k (avec gestion circulaire)
+                # Un véhicule venant de j et allant vers k gêne l'entrée i si :
+                # 1. Il n'est pas originaire de i (j != i)
+                # 2. Il ne sort pas à i (k != i)
+                # 3. Son trajet sur l'anneau passe devant l'entrée i.
+                
+                # Pour vérifier si i est sur le chemin entre j et k :
+                # On regarde si i est compris entre j et k dans le sens horaire.
+                est_sur_le_chemin = False
                 if j < k:
+                    # Trajet simple (ex: de 0 vers 2, passe par 1)
                     if j < i < k:
-                        flux += matrice_od[j][k]
-                else: # Cas où le flux traverse le point "zéro" de l'indexation
+                        est_sur_le_chemin = True
+                else:
+                    # Trajet passant par le point de bouclage (ex: de 3 vers 1, passe par 0)
                     if i > j or i < k:
-                        flux += matrice_od[j][k]
-        q_genant[i] = flux
+                        est_sur_le_chemin = True
+                
+                if est_sur_le_chemin:
+                    flux_cumule += matrice_od[j][k]
+                    
+        q_genant[i] = flux_cumule
+        
     return q_genant
 
 def evaluer_performance(debit_entrant, capacite):
