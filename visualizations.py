@@ -89,7 +89,7 @@ def dessiner_schema_giratoire(donnees_branches, diametre_exterieur):
                 fontsize=10, ha='center', va='center', color='black', fontweight='semibold')
         
         # Texte 3 : Largeur réelle (ex: L=3.5m) <-- NOUVEAU
-        ax.text(xt, yt - 0.6, f"L={largeur_reelle_metres:.1m}", 
+        ax.text(xt, yt - 0.6, f"L={largeur_reelle_metres:.1f}m", 
                 fontsize=9, ha='center', va='center', color='#7f8c8d', style='italic')
 
     # --- Nettoyage et cadrage du graphique ---
