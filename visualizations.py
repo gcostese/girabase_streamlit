@@ -140,39 +140,52 @@ def plot_comparaison_barres(labels, flux, capacites):
     return fig
 
 def plot_chord_diagram(matrice_od):
-    # Version simplifiée via Plotly Sankey (plus lisible qu'un Chord pour les flux routiers)
     n = len(matrice_od)
     sources, targets, values, colors_links = [], [], [], []
-    palette = px.colors.qualitative.Plotly # ou une liste de couleurs HEX
-    for i in range(n):
-        for j in range(n):
+    
+    # Palette Plotly standard (10 couleurs)
+    palette = px.colors.qualitative.Plotly 
+
+    for i in range(n): # Origines
+        for j in range(n): # Destinations
             if matrice_od[i][j] > 0:
                 sources.append(i)
                 targets.append(j + n)
                 values.append(matrice_od[i][j])
+                
+                # Correction de la couleur : 
+                # On récupère la couleur de l'origine (i) et on ajoute de l'alpha (0.4)
                 base_color = palette[i % len(palette)]
-                colors_links.append(base_color.replace('rgb', 'rgba').replace(')', ', 0.4)'))
-    
+                if base_color.startswith('#'):
+                    # Si c'est du HEX, conversion simple ou utilisation tel quel
+                    colors_links.append(base_color) 
+                else:
+                    # Si c'est du rgb, on force rgba pour la transparence
+                    rgba_color = base_color.replace('rgb', 'rgba').replace(')', ', 0.4)')
+                    colors_links.append(rgba_color)
+
     fig = go.Figure(data=[go.Sankey(
         node=dict(
             pad=15,
             thickness=20,
             line=dict(color="white", width=0.5),
             label=[f"Entrée B{i+1}" for i in range(n)] + [f"Sortie B{i+1}" for i in range(n)],
-            color=palette[:n] + ["#bdc3c7"] * n,
-            font=dict(color="white", size=14)
-            ),
+            # Nœuds d'entrée colorés, nœuds de sortie grisés
+            color=palette[:n] + ["#bdc3c7"] * n 
+        ),
         link=dict(
             source=sources, 
             target=targets, 
             value=values,
-            color=colors_links)
+            color=colors_links # S'assurer que cette liste a la même longueur que sources
+        )
     )])
+
     fig.update_layout(
-        title_text="Répartition des transferts",
-        font=dict(size=12, color="white"), # À retirer si thème clair
+        title_text="Répartition des transferts (Entrées vers Sorties)",
+        font=dict(size=12, color="white"),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(l=20, r=20, t=40, b=20)
-        )
+    )
     return fig
