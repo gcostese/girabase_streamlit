@@ -168,11 +168,13 @@ if st.button("Lancer l'analyse", type="primary"):
             "Entrée (Réel/Capa)": f"{q_e} / {capa_e}",
             "Sortie (Réel/Capa)": f"{q_sortant[i]} / {capa_s}",
             "Charge (%)": round((q_e / capa_e)*100, 1) if capa_e > 0 else 100,
-            "capa": capa_e, "flux": q_e, "qg": list_q_genant[i]
+            "capa": capa_e, "flux": q_e, "qg": list_q_genant[i],
+            "flux": q_e, 
+            "qg": list_q_genant[i]
         })
         
         data_recap_table.append({
-            "Branche": i+1,
+            "id": i+1,
             "Flux Entrant (Qe)": q_e,
             "Flux Gênant (Qg)": list_q_genant[i],
             "Capacité (C)": capa_e,
@@ -211,7 +213,7 @@ if st.button("Lancer l'analyse", type="primary"):
         B = (t0 - ts/2)/3600 if mode_expert else 0.0007
         st.pyplot(plot_saturation_curve(A, B, critique['qg'], critique['flux'], f"B{critique['id']}"))
 
-    st.table(pd.DataFrame(structure_resultats).drop(columns=['capa', 'flux', 'qg']))
+    st.table(pd.DataFrame(structure_resultats).drop(columns=['capa', 'flux', 'qg','Couleur', 'Largeur']))
 
     # --- 3. Tableau de synthèse ---
     st.write("### Données détaillées")
