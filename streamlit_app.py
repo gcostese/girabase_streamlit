@@ -33,7 +33,7 @@ st.markdown("""Bienvenue dans cette application interactive dédiée à l'analys
             (rayon de l'anneau, largeur des entrées, inclinaison, etc.). 
             Sa base de calcul repose sur des modèles mathématiques d'acceptation d'intervalles 
             (comme la formule de Siegloch), 
-            qui simulent l'interaction entre le trafic entrant et le trafic circulant sur l'anneau.""""
+            qui simulent l'interaction entre le trafic entrant et le trafic circulant sur l'anneau."""
             )
 
 # --- SIDEBAR : GEOMETRIE ---
