@@ -103,13 +103,13 @@ with st.expander("💡 Comment remplir la matrice des flux ?", expanded=False):
     st.markdown("""
     La matrice permet de décrire **qui va où**. 
     
-    * **Les Lignes (Horizontales) :** Représentent la branche d'**ORIGINE** (d'où viennent les voitures).
-    * **Les Colonnes (Verticales) :** Représentent la branche de **DESTINATION** (où elles vont).
+    * **Les lignes (horizontales) :** représentent la branche d'**ORIGINE** (d'où viennent les voitures).
+    * **Les colonnes (verticales) :** représentent la branche de **DESTINATION** (où elles vont).
     
     **Exemple concret :**
-    Si 200 véhicules arrivent par la **Branche 1** et veulent sortir à la **Branche 3** :
-    1. Trouvez la ligne **"Depuis Branche 1"**.
-    2. Trouvez la colonne **"Vers Branche 3"**.
+    Si 200 véhicules arrivent par la **branche 1** et veulent sortir à la **branche 3** :
+    1. Trouvez la ligne **"Depuis branche 1"**.
+    2. Trouvez la colonne **"Vers branche 3"**.
     3. Saisissez **200** dans cette case.
     """)
     
@@ -186,17 +186,17 @@ if st.button("Lancer l'analyse", type="primary"):
     col_map, col_schema = st.columns([1, 1.2])
     
     with col_map:
-        st.subheader("Analyse des Flux (Heatmap)")
+        st.subheader("Carte de chaleur de la matrice OD")
         fig_heat = generer_heatmap_od(od_values)
         st.pyplot(fig_heat)
         
     with col_schema:
-        st.subheader("État de Charge du Carrefour")
+        st.subheader("État de charge du carrefour")
         # Appel de la fonction graphique complexe
         fig_schema = dessiner_schema_giratoire(structure_resultats, diametre)
         st.pyplot(fig_schema)
 
-    st.plotly_chart(plot_comparaison_barres([f"B{r['Branche']}" for r in structure_resultats], 
+    st.plotly_chart(plot_comparaison_barres([f"B{r['id']}" for r in structure_resultats], 
                                            [r['flux'] for r in structure_resultats], 
                                            [r['capa'] for r in structure_resultats]))
     
@@ -209,7 +209,7 @@ if st.button("Lancer l'analyse", type="primary"):
         # Calcul de A et B pour la courbe
         A = (3600/ts) if mode_expert else (1350) # Simplifié pour l'exemple
         B = (t0 - ts/2)/3600 if mode_expert else 0.0007
-        st.pyplot(plot_saturation_curve(A, B, critique['qg'], critique['flux'], f"B{critique['Branche']}"))
+        st.pyplot(plot_saturation_curve(A, B, critique['qg'], critique['flux'], f"B{critique['id']}"))
 
     st.table(pd.DataFrame(structure_resultats).drop(columns=['capa', 'flux', 'qg']))
 
