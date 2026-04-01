@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import plotly.express as px
 import seaborn as sns
 import numpy as np
 import pandas as pd
@@ -142,24 +143,36 @@ def plot_chord_diagram(matrice_od):
     # Version simplifiée via Plotly Sankey (plus lisible qu'un Chord pour les flux routiers)
     n = len(matrice_od)
     sources, targets, values = [], [], []
+    palette = px.colors.qualitative.Plotly # ou une liste de couleurs HEX
     for i in range(n):
         for j in range(n):
             if matrice_od[i][j] > 0:
                 sources.append(i)
                 targets.append(j + n)
                 values.append(matrice_od[i][j])
+                base_color = palette[i % len(palette)]
+                colors_links.append(base_color.replace('rgb', 'rgba').replace(')', ', 0.4)'))
     
     fig = go.Figure(data=[go.Sankey(
-        node=dict(pad=15, 
-                  thickness=20, 
-                  line=dict(color="white", width=0.5),
-                  label=[f"Entrée B{i+1}" for i in range(n)] + [f"Sortie B{i+1}" for i in range(n)],
-                  font=dict(color="white", size=14)
-                  ),
-        link=dict(source=sources, target=targets, value=values)
+        node=dict(
+            pad=15,
+            thickness=20,
+            line=dict(color="white", width=0.5),
+            label=[f"Entrée B{i+1}" for i in range(n)] + [f"Sortie B{i+1}" for i in range(n)],
+            color=palette[:n] + ["#bdc3c7"] * n,
+            font=dict(color="white", size=14)
+            ),
+        link=dict(
+            source=sources, 
+            target=targets, 
+            value=values,
+            color=colors_links)
     )])
     fig.update_layout(
-        title_text="Répartition des transferts", 
-        font_size=12
+        title_text="Répartition des transferts",
+        font=dict(size=12, color="white"), # À retirer si thème clair
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(l=20, r=20, t=40, b=20)
         )
     return fig
