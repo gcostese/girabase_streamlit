@@ -142,7 +142,7 @@ def plot_comparaison_barres(labels, flux, capacites):
 def plot_chord_diagram(matrice_od):
     # Version simplifiée via Plotly Sankey (plus lisible qu'un Chord pour les flux routiers)
     n = len(matrice_od)
-    sources, targets, values = [], [], []
+    sources, targets, values, colors_links = [], [], [], []
     palette = px.colors.qualitative.Plotly # ou une liste de couleurs HEX
     for i in range(n):
         for j in range(n):
