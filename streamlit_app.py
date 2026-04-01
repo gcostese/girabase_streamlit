@@ -161,7 +161,7 @@ if st.button("Lancer l'analyse", type="primary"):
         couleur = get_color(taux_charge / 100)
         
         structure_resultats.append({
-            'id': i+1,
+            'Branche': i+1,
             'Taux de charge': taux_charge,
             'Couleur': couleur,
             'Largeur': branches_config[i]["largeur"],
@@ -174,7 +174,7 @@ if st.button("Lancer l'analyse", type="primary"):
         })
         
         data_recap_table.append({
-            "id": i+1,
+            "Branche": i+1,
             "Flux Entrant (Qe)": q_e,
             "Flux Gênant (Qg)": list_q_genant[i],
             "Capacité (C)": capa_e,
@@ -198,7 +198,7 @@ if st.button("Lancer l'analyse", type="primary"):
         fig_schema = dessiner_schema_giratoire(structure_resultats, diametre)
         st.pyplot(fig_schema)
 
-    st.plotly_chart(plot_comparaison_barres([f"B{r['id']}" for r in structure_resultats], 
+    st.plotly_chart(plot_comparaison_barres([f"B{r['Branche']}" for r in structure_resultats], 
                                            [r['flux'] for r in structure_resultats], 
                                            [r['capa'] for r in structure_resultats]))
     
@@ -211,7 +211,7 @@ if st.button("Lancer l'analyse", type="primary"):
         # Calcul de A et B pour la courbe
         A = (3600/ts) if mode_expert else (1350) # Simplifié pour l'exemple
         B = (t0 - ts/2)/3600 if mode_expert else 0.0007
-        st.pyplot(plot_saturation_curve(A, B, critique['qg'], critique['flux'], f"B{critique['id']}"))
+        st.pyplot(plot_saturation_curve(A, B, critique['qg'], critique['flux'], f"B{critique['Branche']}"))
 
     st.table(pd.DataFrame(structure_resultats).drop(columns=['capa', 'flux', 'qg','Couleur', 'Largeur']))
 
