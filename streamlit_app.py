@@ -6,15 +6,41 @@ from parameters import get_color
 # NOUVEL IMPORT
 from visualizations import generer_heatmap_od, dessiner_schema_giratoire
 
-st.set_page_config(page_title="Girabase", layout="wide")
+st.set_page_config(page_title="Girabase", 
+                   page_icon="🚗",
+                   layout="wide")
 
-st.title("🚦 Simulateur Giratoire avec Visualisation Dynamique")
+st.title("🔄🛣️ Estimation de la capacité d'un carrefour giratoire")
+
+st.markdown("""Bienvenue dans cette application interactive dédiée à l'analyse de la capacité 
+            des carrefours giratoires selon la méthode **Girabase** du Cerema.  
+            
+            Le logiciel Girabase est un outil de référence en ingénierie routière, 
+            spécifiquement conçu pour l'analyse et le dimensionnement des carrefours giratoires. 
+            Développé historiquement par le réseau technique de l'État 
+            (notamment le Setra et le Certu, aujourd'hui intégrés au [Cerema](https://www.cerema.fr/)), 
+            il est utilisé par les bureaux d'études et les gestionnaires routiers
+            pour valider la **faisabilité technique** de projets d'aménagement, 
+            du mini-giratoire aux structures complexes de 3 à 8 branches,
+            ou pour établir un **diagnostic d'un aménagement existant**.
+
+            Le logiciel Girabase n'est plus maintenu et 
+            son code est en [open source](https://github.com/CEREMA/territoires-ville.Girabase).
+
+            L'objectif principal du logiciel est d'évaluer la capacité de débit 
+            d'un carrefour en fonction des flux de trafic prévisibles 
+            et des caractéristiques géométriques de l'infrastructure 
+            (rayon de l'anneau, largeur des entrées, inclinaison, etc.). 
+            Sa base de calcul repose sur des modèles mathématiques d'acceptation d'intervalles 
+            (comme la formule de Siegloch), 
+            qui simulent l'interaction entre le trafic entrant et le trafic circulant sur l'anneau.""""
+            )
 
 # --- SIDEBAR : GEOMETRIE ---
 st.sidebar.image("BlocMarque_RF-Cerema_horizontal.jpg", 
                  use_container_width=True)
-st.sidebar.header("📐 Géométrie du Carrefour")
-nb_branches = st.sidebar.slider("Nombre de branches", 2, 6, 4)
+st.sidebar.header("📐 Géométrie du carrefour")
+nb_branches = st.sidebar.slider("Nombre de branches", 3, 6, 4)
 diametre = st.sidebar.number_input(
     "Diamètre extérieur (m)", 20, 100, 40, 
     help="Distance entre les bords extérieurs de la chaussée. Un grand diamètre facilite l'insertion."
@@ -35,12 +61,12 @@ with st.expander("ℹ️ Comprendre la méthode de calcul (Girabase / Cerema)", 
     ### Qu'est-ce que la capacité d'un giratoire ?
     La capacité d'une entrée de giratoire est le débit maximal de véhicules qui peuvent s'y insérer en une heure. Elle dépend de deux facteurs principaux :
     
-    1.  **La Géométrie :** Plus l'entrée est large et le diamètre du carrefour grand, plus il est facile de s'insérer.
-    2.  **Le Flux Gênant ($Q_g$) :** C'est le trafic qui circule déjà sur l'anneau devant vous. Plus ce flux est dense, moins il y a d'intervalles ("creux") pour entrer.
+    1.  **La géométrie :** Plus l'entrée est large et le diamètre du carrefour grand, plus il est facile de s'insérer.
+    2.  **Le flux gênant ($Q_g$) :** C'est le trafic qui circule déjà sur l'anneau devant vous. Plus ce flux est dense, moins il y a d'intervalles ("creux") pour entrer.
     """)
 
     # Utilisation d'une image ou d'un schéma explicatif
-    st.info("**Principe de la Loi de Harders :** La capacité diminue de façon exponentielle à mesure que le trafic sur l'anneau augmente.")
+    st.info("**Principe de la loi de Harders :** La capacité diminue de façon exponentielle à mesure que le trafic sur l'anneau augmente.")
     
     st.latex(r"C = A \cdot e^{-B \cdot Q_g}")
     
@@ -89,13 +115,13 @@ with st.expander("💡 Comment remplir la matrice des flux ?", expanded=False):
     }
     st.table(pd.DataFrame(exemple_data, index=["Depuis B1", "Depuis B2", "Depuis B3"]))
     
-    st.warning("⚠️ Les cases diagonales (ex: Depuis B1 vers B1) doivent rester à **0**, " \
+    st.warning("⚠️ Les cases diagonales (ex: depuis B1 vers B1) doivent rester à **0**, " \
     "car un véhicule ne ressort pas par la branche où il est entré.")
 
 # Éditeur de données interactif
 matrice_saisie = st.data_editor(default_matrix, hide_index=False, use_container_width=True)
 
-if st.button("Lancer l'Analyse", type="primary"):
+if st.button("Lancer l'analyse", type="primary"):
     
     # 1. Traitement des données
     od_values = matrice_saisie.values.tolist()
