@@ -150,7 +150,7 @@ def plot_chord_diagram(matrice_od):
                 values.append(matrice_od[i][j])
     
     fig = go.Figure(data=[go.Sankey(
-        node=dict(pad=15, thickness=20, line=dict(color="black", width=0.5),
+        node=dict(pad=15, thickness=20, line=dict(color="white", width=0.5),
                   label=[f"Entrée B{i+1}" for i in range(n)] + [f"Sortie B{i+1}" for i in range(n)]),
         link=dict(source=sources, target=targets, value=values)
     )])
