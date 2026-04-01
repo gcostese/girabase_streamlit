@@ -195,7 +195,11 @@ if st.button("Lancer l'analyse", type="primary"):
     with col_schema:
         st.subheader("État de charge du carrefour")
         # Appel de la fonction graphique complexe
-        fig_schema = dessiner_schema_giratoire(structure_resultats, diametre)
+        fig_schema = dessiner_schema_giratoire(
+            structure_resultats, 
+            diametre, 
+            matrice_saisie.values
+        )
         st.pyplot(fig_schema)
 
     st.plotly_chart(plot_comparaison_barres([f"B{r['Branche']}" for r in structure_resultats], 
