@@ -150,12 +150,16 @@ def plot_chord_diagram(matrice_od):
                 values.append(matrice_od[i][j])
     
     fig = go.Figure(data=[go.Sankey(
-        node=dict(pad=15, thickness=20, line=dict(color="white", width=0.5),
-                  label=[f"Entrée B{i+1}" for i in range(n)] + [f"Sortie B{i+1}" for i in range(n)]),
+        node=dict(pad=15, 
+                  thickness=20, 
+                  line=dict(color="white", width=0.5),
+                  label=[f"Entrée B{i+1}" for i in range(n)] + [f"Sortie B{i+1}" for i in range(n)],
+                  font=dict(color="white", size=14)
+                  ),
         link=dict(source=sources, target=targets, value=values)
     )])
     fig.update_layout(
         title_text="Répartition des transferts", 
-        font=dict(size=12, color="white")
+        font_size=12
         )
     return fig
