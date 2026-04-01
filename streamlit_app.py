@@ -1,10 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from engine import calculer_flux_circulant, calculer_capacite_girabase
 from parameters import get_color
-# NOUVEL IMPORT
-from visualizations import generer_heatmap_od, dessiner_schema_giratoire
+from engine import calculer_flux_circulant, calculer_capacite_girabase, calculer_capacite_sortie
+from visualizations import generer_heatmap_od, dessiner_schema_giratoire, plot_saturation_curve, plot_comparaison_barres, plot_chord_diagram
 
 st.set_page_config(page_title="Girabase", 
                    page_icon="🚗",
@@ -12,7 +11,8 @@ st.set_page_config(page_title="Girabase",
 
 st.title("🔄🛣️ Estimation de la capacité d'un carrefour giratoire")
 
-st.markdown("""Bienvenue dans cette application interactive dédiée à l'analyse de la capacité 
+st.markdown("""
+            Bienvenue dans cette application interactive dédiée à l'analyse de la capacité 
             des carrefours giratoires selon la méthode **Girabase** du Cerema.  
             
             Le logiciel Girabase est un outil de référence en ingénierie routière, 
@@ -32,9 +32,9 @@ st.markdown("""Bienvenue dans cette application interactive dédiée à l'analys
             et des caractéristiques géométriques de l'infrastructure 
             (rayon de l'anneau, largeur des entrées, inclinaison, etc.). 
             Sa base de calcul repose sur des modèles mathématiques d'acceptation d'intervalles 
-            (comme la formule de Siegloch), 
-            qui simulent l'interaction entre le trafic entrant et le trafic circulant sur l'anneau."""
-            )
+            (comme la formule simplifiée de Siegloch ou celle plus détaillée de Harders), 
+            qui simulent l'interaction entre le trafic entrant et le trafic circulant sur l'anneau.
+            """)
 
 # --- SIDEBAR : GEOMETRIE ---
 st.sidebar.image("BlocMarque_RF-Cerema_horizontal.jpg", 
@@ -54,6 +54,12 @@ for i in range(nb_branches):
     l_defaut = 3.5 if voies == 1 else 7.0
     largeur = st.sidebar.slider(f"Largeur B{i+1} (m)", 3.0, 8.0, l_defaut, key=f"l_{i}")
     branches_config.append({"voies": voies, "largeur": largeur})
+
+# --- PARAMÈTRES AVANCÉS ---
+with st.sidebar.expander("⚙️ Paramètres avancés (Expert)"):
+    mode_expert = st.checkbox("Utiliser modèle théorique (t0/ts)")
+    t0 = st.slider("Intervalle critique (t0) en s", 2.0, 6.0, 4.0)
+    ts = st.slider("Temps de suivi (ts) en s", 1.0, 4.0, 2.0)
 
 # --- CELLULE D'INFORMATION PÉDAGOGIQUE ---
 with st.expander("ℹ️ Comprendre la méthode de calcul (Girabase / Cerema)", expanded=False):
@@ -121,11 +127,20 @@ with st.expander("💡 Comment remplir la matrice des flux ?", expanded=False):
 # Éditeur de données interactif
 matrice_saisie = st.data_editor(default_matrix, hide_index=False, use_container_width=True)
 
+# --- ALERTES DE SÉCURITÉ ---
+if (matrice_saisie.values < 0).any():
+    st.error("⚠️ Alerte : La matrice contient des valeurs négatives. Veuillez corriger les flux.")
+    st.stop()
+
+flux_total = matrice_saisie.values.sum()
+if flux_total > 10000:
+    st.warning(f"⚠️ Volume absurde : {flux_total} uvp/h. Ce carrefour est physiquement incapable de traiter ce flux.")
+
 if st.button("Lancer l'analyse", type="primary"):
     
     # 1. Traitement des données
     od_values = matrice_saisie.values.tolist()
-    list_q_genant = calculer_flux_circulant(od_values)
+    list_q_genant, q_sortant = calculer_flux_circulant(od_values)
     list_q_entrant = [sum(row) for row in od_values]
     
     # Stockage structuré pour les visualisations
@@ -133,30 +148,36 @@ if st.button("Lancer l'analyse", type="primary"):
     data_recap_table = []
     
     for i in range(nb_branches):
-        capa = calculer_capacite_girabase(
+        params = {"t0": t0, "ts": ts} if mode_expert else {}
+        capa_e = calculer_capacite_girabase(
             list_q_genant[i], 
             branches_config[i]["largeur"], 
             branches_config[i]["voies"], 
             diametre
         )
+        capa_s = calculer_capacite_sortie(3.5, 1)
         q_e = list_q_entrant[i]
-        taux_charge = (q_e / capa if capa > 0 else 1.0) * 100 # En %
+        taux_charge = (q_e / capa_e if capa_e > 0 else 1.0) * 100 # En %
         couleur = get_color(taux_charge / 100)
         
         structure_resultats.append({
             'id': i+1,
             'Taux de charge': taux_charge,
             'Couleur': couleur,
-            'Largeur': branches_config[i]["largeur"]
+            'Largeur': branches_config[i]["largeur"],
+            "Entrée (Réel/Capa)": f"{q_e} / {capa_e}",
+            "Sortie (Réel/Capa)": f"{q_sortant[i]} / {capa_s}",
+            "Charge (%)": round((q_e / capa_e)*100, 1) if capa_e > 0 else 100,
+            "capa": capa_e, "flux": q_e, "qg": list_q_genant[i]
         })
         
         data_recap_table.append({
             "Branche": i+1,
             "Flux Entrant (Qe)": q_e,
             "Flux Gênant (Qg)": list_q_genant[i],
-            "Capacité (C)": capa,
+            "Capacité (C)": capa_e,
             "Taux de charge (%)": round(taux_charge, 1),
-            "Réserve (uvp/h)": max(0, capa - q_e)
+            "Réserve (uvp/h)": max(0, capa_e - q_e)
         })
 
     st.write("---")
@@ -174,6 +195,23 @@ if st.button("Lancer l'analyse", type="primary"):
         # Appel de la fonction graphique complexe
         fig_schema = dessiner_schema_giratoire(structure_resultats, diametre)
         st.pyplot(fig_schema)
+
+    st.plotly_chart(plot_comparaison_barres([f"B{r['Branche']}" for r in structure_resultats], 
+                                           [r['flux'] for r in structure_resultats], 
+                                           [r['capa'] for r in structure_resultats]))
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.plotly_chart(plot_chord_diagram(matrice_saisie.values), use_container_width=True)
+    with col2:
+        # Affichage de la courbe pour la branche la plus chargée
+        critique = max(structure_resultats, key=lambda x: x['Charge (%)'])
+        # Calcul de A et B pour la courbe
+        A = (3600/ts) if mode_expert else (1350) # Simplifié pour l'exemple
+        B = (t0 - ts/2)/3600 if mode_expert else 0.0007
+        st.pyplot(plot_saturation_curve(A, B, critique['qg'], critique['flux'], f"B{critique['Branche']}"))
+
+    st.table(pd.DataFrame(structure_resultats).drop(columns=['capa', 'flux', 'qg']))
 
     # --- 3. Tableau de synthèse ---
     st.write("### Données détaillées")

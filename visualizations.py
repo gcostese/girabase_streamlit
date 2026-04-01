@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 import seaborn as sns
 import numpy as np
 import pandas as pd
@@ -100,4 +101,43 @@ def dessiner_schema_giratoire(donnees_branches, diametre_exterieur):
     ax.axis('off') # Cache les axes X et Y pour un rendu propre
     plt.tight_layout()
     
+    return fig
+
+def plot_saturation_curve(A, B, q_g, q_e, nom_branche):
+    fig, ax = plt.subplots(figsize=(5, 3))
+    x = np.linspace(0, 2000, 100)
+    y = A * np.exp(-B * x)
+    ax.plot(x, y, color='#3498db', label="Courbe de capacité théorique")
+    ax.scatter(q_g, q_e, color='red', s=50, zorder=5, label="Point de fonctionnement actuel")
+    ax.set_title(f"Saturation de la branche {nom_branche}", fontsize=10)
+    ax.set_xlabel("Flux gênant Qg (uvp/h)", fontsize=8)
+    ax.set_ylabel("Capacité d'entrée (uvp/h)", fontsize=8)
+    ax.grid(True, alpha=0.3)
+    ax.legend(prop={'size': 7})
+    return fig
+
+def plot_comparaison_barres(labels, flux, capacites):
+    fig = go.Figure()
+    fig.add_trace(go.Bar(name='Flux Réel', x=labels, y=flux, marker_color='#34495e'))
+    fig.add_trace(go.Bar(name='Capacité Totale', x=labels, y=capacites, marker_color='#2ecc71'))
+    fig.update_layout(barmode='group', height=300, margin=dict(l=20, r=20, t=30, b=20))
+    return fig
+
+def plot_chord_diagram(matrice_od):
+    # Version simplifiée via Plotly Sankey (plus lisible qu'un Chord pour les flux routiers)
+    n = len(matrice_od)
+    sources, targets, values = [], [], []
+    for i in range(n):
+        for j in range(n):
+            if matrice_od[i][j] > 0:
+                sources.append(i)
+                targets.append(j + n)
+                values.append(matrice_od[i][j])
+    
+    fig = go.Figure(data=[go.Sankey(
+        node=dict(pad=15, thickness=20, line=dict(color="black", width=0.5),
+                  label=[f"Entrée B{i+1}" for i in range(n)] + [f"Sortie B{i+1}" for i in range(n)]),
+        link=dict(source=sources, target=targets, value=values)
+    )])
+    fig.update_layout(title_text="Répartition des transferts", font_size=10)
     return fig
